@@ -17,6 +17,21 @@ class HomepageSection extends Model
         'is_visible' => 'boolean',
     ];
 
+    public function getExtraDataAttribute($value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_string($value) && ! empty($value)) {
+            $decoded = json_decode($value, true);
+
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        return [];
+    }
+
     public static function getSection(string $key): ?self
     {
         return cache()->remember("homepage_section.{$key}", 3600, function () use ($key) {
