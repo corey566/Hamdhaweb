@@ -1,3 +1,49 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Google Fonts loaded in layout head tag, not here */
+
+@layer base {
+  body {
+    @apply font-sans text-text-dark bg-white antialiased;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply max-w-7xl mx-auto px-4 lg:px-16;
+  }
+
+  .section-spacing {
+    @apply py-12 lg:py-16;
+  }
+
+  .section-title {
+    @apply font-heading text-2xl lg:text-[26px] font-semibold tracking-[0.12em] text-text-dark uppercase;
+  }
+
+  .section-subtitle {
+    @apply text-xs tracking-[0.1em] text-text-light mt-2 uppercase;
+  }
+
+  .tag-pill {
+    @apply inline-block bg-primary text-white text-[10px] font-medium tracking-wide px-2.5 py-1 rounded-sm;
+  }
+
+  .tag-pill-outline {
+    @apply inline-block border border-primary text-primary text-[10px] font-medium tracking-wide px-2.5 py-1 rounded-sm;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white text-sm font-semibold tracking-wide px-6 py-3 hover:bg-primary-hover transition-colors;
+  }
+
+  .btn-outline {
+    @apply border border-primary text-primary text-sm font-medium tracking-wide px-6 py-3 hover:bg-primary hover:text-white transition-colors;
+  }
+
+  .nav-link {
+    @apply text-xs lg:text-[13px] font-medium tracking-widest uppercase text-text-dark hover:text-primary-light whitespace-nowrap transition-colors;
+  }
+}
