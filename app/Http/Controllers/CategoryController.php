@@ -30,6 +30,7 @@ class CategoryController extends Controller
             ['label' => 'HOME', 'url' => route('home')],
             ['label' => strtoupper($category->name), 'url' => null],
         ];
+        $pageTitle = strtoupper($category->name);
         if ($category->parent) {
             array_splice($breadcrumbs, 1, 0, [[
                 'label' => strtoupper($category->parent->name),
@@ -39,7 +40,7 @@ class CategoryController extends Controller
 
         return view('pages.products.index', compact(
             'category', 'productCount', 'fabrics', 'priceBuckets',
-            'allCategories', 'breadcrumbs'
+            'allCategories', 'breadcrumbs', 'pageTitle'
         ));
     }
 }
