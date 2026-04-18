@@ -17,7 +17,7 @@
 </head>
 <body class="font-sans text-text-dark bg-white antialiased" x-data="{ drawerOpen: false, searchOpen: false }">
 
-    <x-announcement-bar :items="$siteSettings['announcement_bar_items'] ?? []" :phone="$siteSettings['contact_phone'] ?? ''" />
+    <x-announcement-bar :items="$siteSettings['announcement_bar_items'] ?? []" :phone="$siteSettings['contact_phone'] ?? ''" :socialInstagram="$siteSettings['social_instagram'] ?? ''" :socialFacebook="$siteSettings['social_facebook'] ?? ''" :socialTiktok="$siteSettings['social_tiktok'] ?? ''" />
 
     <x-navbar :categories="$navCategories" />
 

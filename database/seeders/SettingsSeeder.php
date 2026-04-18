@@ -20,7 +20,6 @@ class SettingsSeeder extends Seeder
             'social_tiktok' => 'https://tiktok.com/@hamdhaclothing',
             'contact_phone' => '077-762-6013',
             'announcement_bar_items' => json_encode([
-                'Insta/Fb/Tiktok',
                 'Island wide shipping',
             ]),
             'footer_tagline' => 'Premium custom abayas crafted with care. Every piece is made to order, tailored to your unique preferences.',
