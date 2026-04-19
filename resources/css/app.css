@@ -28,7 +28,7 @@
   }
 
   .tag-pill {
-    @apply inline-block bg-primary text-white text-[10px] font-medium tracking-wide px-2.5 py-1 rounded-sm;
+    @apply inline-block bg-primary text-white text-xs font-medium tracking-[0.4em] px-4 py-2 rounded-sm;
   }
 
   .tag-pill-outline {
@@ -45,5 +45,30 @@
 
   .nav-link {
     @apply text-xs lg:text-[13px] font-medium tracking-widest uppercase text-text-dark hover:text-primary-light whitespace-nowrap transition-colors;
+  }
+
+  .marquee-container {
+    @apply overflow-hidden;
+  }
+
+  .marquee-track {
+    @apply flex w-max gap-6;
+    animation: scroll 20s linear infinite;
+  }
+
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track {
+      animation: none;
+      overflow-x: auto;
+    }
   }
 }

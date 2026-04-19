@@ -36,12 +36,19 @@
             </div>
         </div>
 
-        <div class="flex flex-wrap gap-2 py-6 border-t border-gray-200">
-            @foreach($categories as $cat)
-                <a href="{{ route('category.show', $cat->slug) }}" class="tag-pill px-4 py-2 hover:bg-primary-hover transition">
-                    {{ strtoupper($cat->name) }}
-                </a>
-            @endforeach
+        <div class="marquee-container py-6 border-t border-gray-200">
+            <div class="marquee-track">
+                @foreach($categories as $cat)
+                    <a href="{{ route('category.show', $cat->slug) }}" class="tag-pill hover:bg-primary-hover transition whitespace-nowrap">
+                        {{ $cat->name }}
+                    </a>
+                @endforeach
+                @foreach($categories as $cat)
+                    <a href="{{ route('category.show', $cat->slug) }}" class="tag-pill hover:bg-primary-hover transition whitespace-nowrap">
+                        {{ $cat->name }}
+                    </a>
+                @endforeach
+            </div>
         </div>
     </div>
 </section>
