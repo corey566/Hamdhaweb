@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ImageService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -97,9 +98,15 @@ class Product extends Model
         static::creating(function (Product $product) {
             if (empty($product->model_number)) {
                 $prefix = Setting::get('model_number_prefix', 'HM');
-                $next = (int) Setting::get('model_number_next', 1);
+
+                $next = cache()->lock('model_number_generation', 10)->block(5, function () {
+                    $next = (int) Setting::get('model_number_next', 1);
+                    Setting::set('model_number_next', (string) ($next + 1));
+
+                    return $next;
+                });
+
                 $product->model_number = $prefix.'-'.str_pad($next, 4, '0', STR_PAD_LEFT);
-                Setting::set('model_number_next', (string) ($next + 1));
             }
 
             if (empty($product->slug)) {
@@ -111,6 +118,16 @@ class Product extends Model
                 }
                 $product->slug = $slug;
             }
+        });
+
+        static::deleting(function (Product $product) {
+            $imageService = app(ImageService::class);
+            foreach ($product->images as $image) {
+                $imageService->deleteImage($image->image_path);
+                $imageService->deleteImage($image->thumbnail_path);
+            }
+            $product->categories()->detach();
+            $product->sizeCharts()->detach();
         });
     }
 }

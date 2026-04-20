@@ -8,21 +8,27 @@ use Intervention\Image\Laravel\Facades\Image;
 
 class ImageService
 {
-    public function processProductImage(UploadedFile $file): array
+    public function processProductImage(UploadedFile|string $file): array
     {
         $uuid = Str::uuid();
 
-        $image = Image::read($file);
+        $source = $file instanceof UploadedFile ? $file : storage_path("app/public/{$file}");
+
+        $image = Image::read($source);
         $image->scaleDown(width: 1080, height: 1350);
         $fullPath = "products/{$uuid}.webp";
         $image->toWebp(quality: 85)
             ->save(storage_path("app/public/{$fullPath}"));
 
-        $thumb = Image::read($file);
+        $thumb = Image::read($source);
         $thumb->scaleDown(width: 540, height: 675);
         $thumbPath = "products/thumbs/{$uuid}.webp";
         $thumb->toWebp(quality: 80)
             ->save(storage_path("app/public/{$thumbPath}"));
+
+        if (is_string($file)) {
+            $this->deleteImage($file);
+        }
 
         return [
             'image_path' => $fullPath,
@@ -30,26 +36,40 @@ class ImageService
         ];
     }
 
-    public function processCategoryImage(UploadedFile $file): string
+    public function processCategoryImage(UploadedFile|string $file): string
     {
         $uuid = Str::uuid();
-        $image = Image::read($file);
+
+        $source = $file instanceof UploadedFile ? $file : storage_path("app/public/{$file}");
+
+        $image = Image::read($source);
         $image->scaleDown(width: 1080, height: 1350);
         $path = "categories/{$uuid}.webp";
         $image->toWebp(quality: 85)
             ->save(storage_path("app/public/{$path}"));
 
+        if (is_string($file)) {
+            $this->deleteImage($file);
+        }
+
         return $path;
     }
 
-    public function processSizeChartImage(UploadedFile $file): string
+    public function processSizeChartImage(UploadedFile|string $file): string
     {
         $uuid = Str::uuid();
-        $image = Image::read($file);
+
+        $source = $file instanceof UploadedFile ? $file : storage_path("app/public/{$file}");
+
+        $image = Image::read($source);
         $image->scaleDown(width: 1080, height: 1350);
         $path = "size-charts/{$uuid}.webp";
         $image->toWebp(quality: 85)
             ->save(storage_path("app/public/{$path}"));
+
+        if (is_string($file)) {
+            $this->deleteImage($file);
+        }
 
         return $path;
     }

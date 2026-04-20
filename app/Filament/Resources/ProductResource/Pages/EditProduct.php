@@ -7,7 +7,6 @@ use App\Models\ProductImage;
 use App\Services\ImageService;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class EditProduct extends EditRecord
 {
@@ -38,15 +37,7 @@ class EditProduct extends EditRecord
         $newSortOrder = 0;
 
         foreach ($state as $file) {
-            if ($file instanceof TemporaryUploadedFile) {
-                $result = $imageService->processProductImage($file);
-                ProductImage::create([
-                    'product_id' => $product->id,
-                    'image_path' => $result['image_path'],
-                    'thumbnail_path' => $result['thumbnail_path'],
-                    'sort_order' => $newSortOrder++,
-                ]);
-            } elseif (is_string($file) && ! empty($file)) {
+            if (is_string($file) && ! empty($file)) {
                 $image = ProductImage::where('product_id', $product->id)
                     ->where(function ($q) use ($file) {
                         $q->where('image_path', $file)
@@ -57,6 +48,15 @@ class EditProduct extends EditRecord
                 if ($image) {
                     $image->update(['sort_order' => $newSortOrder++]);
                     $existingImageIds[] = $image->id;
+                } else {
+                    $result = $imageService->processProductImage($file);
+                    $newImage = ProductImage::create([
+                        'product_id' => $product->id,
+                        'image_path' => $result['image_path'],
+                        'thumbnail_path' => $result['thumbnail_path'],
+                        'sort_order' => $newSortOrder++,
+                    ]);
+                    $existingImageIds[] = $newImage->id;
                 }
             }
         }

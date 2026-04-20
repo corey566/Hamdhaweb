@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Product;
+use App\Services\ImageService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -90,8 +91,10 @@ class ProductResource extends Resource
                     ->multiple()
                     ->maxFiles(5)
                     ->reorderable()
-                    ->directory('products')
-                    ->helperText('First image becomes the thumbnail. Drag to reorder.'),
+                    ->directory('products/tmp')
+                    ->helperText('First image becomes the thumbnail. Drag to reorder.')
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->saveRelationshipsUsing(null),
             ]),
 
             Forms\Components\Section::make('Visibility')->schema([
@@ -149,7 +152,16 @@ class ProductResource extends Resource
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\DeleteBulkAction::make()
+                    ->before(function ($records) {
+                        $imageService = app(ImageService::class);
+                        foreach ($records as $product) {
+                            foreach ($product->images as $image) {
+                                $imageService->deleteImage($image->image_path);
+                                $imageService->deleteImage($image->thumbnail_path);
+                            }
+                        }
+                    }),
             ]);
     }
 

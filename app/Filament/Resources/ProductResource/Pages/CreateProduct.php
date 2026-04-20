@@ -6,6 +6,7 @@ use App\Filament\Resources\ProductResource;
 use App\Models\ProductImage;
 use App\Services\ImageService;
 use Filament\Resources\Pages\CreateRecord;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class CreateProduct extends CreateRecord
 {
@@ -29,13 +30,19 @@ class CreateProduct extends CreateRecord
             $sortOrder = 0;
 
             foreach ($uploadedFiles as $file) {
-                $result = $imageService->processProductImage($file);
-                ProductImage::create([
-                    'product_id' => $product->id,
-                    'image_path' => $result['image_path'],
-                    'thumbnail_path' => $result['thumbnail_path'],
-                    'sort_order' => $sortOrder++,
-                ]);
+                if ($file instanceof TemporaryUploadedFile) {
+                    $result = $imageService->processProductImage($file);
+                } elseif (is_string($file) && ! empty($file)) {
+                    $result = $imageService->processProductImage($file);
+                }
+                if (! empty($result)) {
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'image_path' => $result['image_path'],
+                        'thumbnail_path' => $result['thumbnail_path'],
+                        'sort_order' => $sortOrder++,
+                    ]);
+                }
             }
         }
 
