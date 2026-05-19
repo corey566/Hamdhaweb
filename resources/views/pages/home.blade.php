@@ -30,79 +30,74 @@
         @endforeach
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 lg:px-16">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
-            <div class="flex flex-col justify-center pt-5 pb-8 lg:py-20 lg:pr-12">
-                <p class="text-xs tracking-[0.2em] uppercase text-text-light mb-1.5 lg:mb-3">{{ $hero->subtitle }}</p>
-                <h1 class="font-heading text-2xl lg:text-4xl font-bold text-text-dark leading-tight tracking-wide whitespace-pre-line lg:whitespace-pre-line hero-title-animate lg:animate-none">
+    <div class="hero-desktop-bleed lg:grid lg:grid-cols-2 lg:min-h-[600px]">
+        <div class="flex flex-col justify-center px-4 pt-5 pb-8 lg:px-10 lg:py-16 xl:px-14 2xl:px-20 lg:pr-10 xl:pr-14">
+                <p class="text-xs tracking-[0.2em] uppercase text-text-light mb-1 lg:mb-1.5">{{ $hero->subtitle }}</p>
+                <h1 class="font-heading text-2xl lg:text-4xl xl:text-[2.75rem] font-bold text-text-dark leading-[1.1] tracking-wide whitespace-pre-line hero-title-animate lg:animate-none">
                     {{ $hero->title }}
                 </h1>
-                <p class="text-sm text-text-medium mt-2 lg:mt-4 leading-relaxed max-w-md">{{ $hero->content }}</p>
+                <p class="text-sm text-text-medium mt-2 lg:mt-3 leading-relaxed max-w-md lg:max-w-lg">{{ $hero->content }}</p>
                 <div class="flex flex-wrap gap-3 mt-4 lg:mt-6">
                     <a href="{{ route('products.index') }}" class="btn-outline">Explore Design</a>
-                    @php
-                        $plainCategory = $categories->flatMap->children->firstWhere('slug', 'plain-abaya')
-                            ?? $categories->flatMap->children->first();
-                    @endphp
-                    @if($plainCategory)
-                    <a href="{{ route('category.show', $plainCategory->slug) }}" class="btn-outline">Plain Abaya</a>
-                    @endif
                     <a href="https://wa.me/{{ $siteSettings['whatsapp_number'] ?? '94777626013' }}" target="_blank" rel="noopener" class="btn-primary">
                         {{ $hero->cta_text ?? 'Order via Whatsapp' }}
                     </a>
                 </div>
             </div>
 
-            <div class="hidden lg:block relative h-[600px] overflow-hidden hero-fullbleed" x-data="{
-                current: 0,
-                slides: {{ $slides->count() }},
-                init() {
-                    if (this.slides > 1) {
-                        setInterval(() => { this.current = (this.current + 1) % this.slides; }, 5000);
-                    }
-                }
-            }">
-                @foreach($slides as $i => $slide)
-                    <img src="{{ asset('storage/' . $slide) }}"
-                         alt=""
-                         class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
-                         :class="current === {{ $i }} ? 'opacity-100' : 'opacity-0'">
-                @endforeach
-            </div>
-        </div>
-
-        @php
-            $marqueeCategories = collect();
-            foreach ($categories as $parent) {
-                foreach ($parent->children as $child) {
-                    $suffix = str_contains(strtolower($parent->slug), 'hijab') ? ' Hijab' : ' Abaya';
-                    $marqueeCategories->push([
-                        'model' => $child,
-                        'label' => $child->name.$suffix,
-                    ]);
+        <div class="hidden lg:block relative min-h-[600px] overflow-hidden bg-gray-200" x-data="{
+            current: 0,
+            slides: {{ $slides->count() }},
+            init() {
+                if (this.slides > 1) {
+                    setInterval(() => { this.current = (this.current + 1) % this.slides; }, 5000);
                 }
             }
-        @endphp
-        @if($marqueeCategories->isNotEmpty())
-        <div class="marquee-container py-6 border-t border-gray-200">
-            <div class="marquee-track">
-                @foreach([0, 1] as $copy)
-                    @foreach($marqueeCategories as $item)
-                        @if($siteSettings['marquee_links_enabled'] ?? true)
-                            <a href="{{ route('category.show', $item['model']->slug) }}"
-                               class="tag-pill hover:bg-primary-hover transition whitespace-nowrap"
-                               @if($copy === 1) aria-hidden="true" tabindex="-1" @endif>
-                                {{ $item['label'] }}
-                            </a>
-                        @else
-                            <span class="tag-pill whitespace-nowrap" @if($copy === 1) aria-hidden="true" @endif>{{ $item['label'] }}</span>
-                        @endif
-                    @endforeach
-                @endforeach
-            </div>
+        }">
+            @forelse($slides as $i => $slide)
+                <img src="{{ asset('storage/' . $slide) }}"
+                     alt="{{ $hero->title }}"
+                     class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
+                     :class="current === {{ $i }} ? 'opacity-100' : 'opacity-0'">
+            @empty
+                <div class="absolute inset-0 flex items-center justify-center text-sm text-text-light px-6 text-center">
+                    Add hero images in Admin → Homepage → Hero Section
+                </div>
+            @endforelse
         </div>
-        @endif
     </div>
+
+    @php
+        $marqueeCategories = collect();
+        foreach ($categories as $parent) {
+            foreach ($parent->children as $child) {
+                $suffix = str_contains(strtolower($parent->slug), 'hijab') ? ' Hijab' : ' Abaya';
+                $marqueeCategories->push([
+                    'model' => $child,
+                    'label' => strtoupper($child->name.$suffix),
+                ]);
+            }
+        }
+    @endphp
+    @if($marqueeCategories->isNotEmpty())
+    <nav class="category-strip-fullbleed bg-primary text-white overflow-hidden" aria-label="Shop by category">
+        <div class="category-strip-marquee">
+            @foreach([0, 1] as $copy)
+                @foreach($marqueeCategories as $item)
+                    @if($siteSettings['marquee_links_enabled'] ?? true)
+                        <a href="{{ route('category.show', $item['model']->slug) }}"
+                           class="category-strip-link"
+                           @if($copy === 1) aria-hidden="true" tabindex="-1" @endif>
+                            {{ $item['label'] }}
+                        </a>
+                    @else
+                        <span class="category-strip-link" @if($copy === 1) aria-hidden="true" @endif>{{ $item['label'] }}</span>
+                    @endif
+                @endforeach
+            @endforeach
+        </div>
+    </nav>
+    @endif
 </section>
 @endif
 

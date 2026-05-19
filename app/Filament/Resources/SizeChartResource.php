@@ -31,7 +31,6 @@ class SizeChartResource extends Resource
             Forms\Components\FileUpload::make('image_path')
                 ->label('Size Chart Image (1080×1350, 4:5 ratio)')
                 ->image()
-                ->required()
                 ->directory('size-charts')
                 ->imageResizeMode('cover')
                 ->imageCropAspectRatio('4:5'),

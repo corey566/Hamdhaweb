@@ -179,7 +179,9 @@
             @foreach($product->sizeCharts as $chart)
               <div>
                 <p class="text-sm font-medium text-text-dark mb-2">{{ $chart->name }}</p>
+                @if($chart->image_path)
                 <img src="{{ asset('storage/' . $chart->image_path) }}" class="w-full rounded" alt="{{ $chart->name }}">
+                @endif
               </div>
             @endforeach
           </div>

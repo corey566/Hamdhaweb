@@ -6,28 +6,18 @@ use App\Models\Category;
 use App\Models\Fabric;
 use App\Models\PriceBucket;
 use App\Models\Product;
-use App\Models\ProductImage;
 use App\Models\SizeChart;
-use App\Services\ImageService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use Intervention\Image\Laravel\Facades\Image;
 
 class DemoCatalogSeeder extends Seeder
 {
     public function run(): void
     {
-        foreach (['products', 'products/thumbs', 'size-charts', 'categories'] as $dir) {
-            $path = storage_path("app/public/{$dir}");
-            if (! is_dir($path)) {
-                mkdir($path, 0755, true);
-            }
-        }
-
         $this->seedFabrics();
         $this->seedPriceBuckets();
-        $abayaChart = $this->seedSizeChart('Abaya Size Guide', '#3d2b2b');
-        $hijabChart = $this->seedSizeChart('Hijab Size Guide', '#4a3f3f');
+        $abayaChart = $this->seedSizeChart('Abaya Size Guide');
+        $hijabChart = $this->seedSizeChart('Hijab Size Guide');
 
         $samples = [
             'plain-abaya' => [
@@ -77,11 +67,15 @@ class DemoCatalogSeeder extends Seeder
                     'colors' => 'Black, Navy, Brown',
                     'is_visible' => true,
                     'is_featured' => $variant % 3 === 0,
+                    'cover_image_path' => null,
+                    'cover_thumbnail_path' => null,
                 ]);
                 if (! $product->exists && ! empty($data['model_number'])) {
                     $product->model_number = $data['model_number'];
                 }
                 $product->save();
+
+                $product->images()->delete();
 
                 $product->categories()->sync([
                     $category->id => ['is_primary' => true],
@@ -92,7 +86,7 @@ class DemoCatalogSeeder extends Seeder
                     $product->sizeCharts()->sync([$chart->id => ['sort_order' => 0]]);
                 }
 
-                $this->ensureProductImages($product, $data['name'], $variant++);
+                $variant++;
             }
         }
 
@@ -132,97 +126,11 @@ class DemoCatalogSeeder extends Seeder
         }
     }
 
-    protected function seedSizeChart(string $name, string $hex): ?SizeChart
+    protected function seedSizeChart(string $name): ?SizeChart
     {
-        $path = $this->createPlaceholderAsset($name, $hex, 'size-charts');
-
         return SizeChart::updateOrCreate(
             ['name' => $name],
-            ['image_path' => $path, 'sort_order' => 0]
+            ['image_path' => null, 'sort_order' => 0]
         );
-    }
-
-    protected function ensureProductImages(Product $product, string $label, int $variant): void
-    {
-        if ($product->cover_image_path && $product->images()->count() >= 2) {
-            return;
-        }
-
-        $product->images()->each(function (ProductImage $image) {
-            app(ImageService::class)->deleteImage($image->image_path);
-            app(ImageService::class)->deleteImage($image->thumbnail_path);
-            $image->delete();
-        });
-
-        if ($product->cover_image_path) {
-            app(ImageService::class)->deleteImage($product->cover_image_path);
-        }
-        if ($product->cover_thumbnail_path) {
-            app(ImageService::class)->deleteImage($product->cover_thumbnail_path);
-        }
-
-        $palette = ['#3d2b2b', '#5c4a4a', '#2a2424', '#6b5252'];
-        $bg = $palette[$variant % count($palette)];
-
-        $cover = $this->processPlaceholder($label, $bg);
-        $hover = $this->processPlaceholder($label.' — detail', '#4a3f3f');
-
-        $product->update([
-            'cover_image_path' => $cover['image_path'],
-            'cover_thumbnail_path' => $cover['thumbnail_path'],
-        ]);
-
-        ProductImage::create([
-            'product_id' => $product->id,
-            'image_path' => $cover['image_path'],
-            'thumbnail_path' => $cover['thumbnail_path'],
-            'sort_order' => 0,
-        ]);
-
-        ProductImage::create([
-            'product_id' => $product->id,
-            'image_path' => $hover['image_path'],
-            'thumbnail_path' => $hover['thumbnail_path'],
-            'sort_order' => 1,
-        ]);
-    }
-
-    /**
-     * @return array{image_path: string, thumbnail_path: string}
-     */
-    protected function processPlaceholder(string $label, string $bgHex): array
-    {
-        $uuid = Str::uuid();
-        $fullPath = "products/{$uuid}.webp";
-        $thumbPath = "products/thumbs/{$uuid}.webp";
-
-        $image = Image::create(1080, 1350)->fill(ltrim($bgHex, '#'));
-        $image->toWebp(quality: 85)->save(storage_path("app/public/{$fullPath}"));
-
-        $thumb = Image::read(storage_path("app/public/{$fullPath}"));
-        $thumb->scaleDown(540, 675);
-        $thumb->toWebp(quality: 80)->save(storage_path("app/public/{$thumbPath}"));
-
-        return [
-            'image_path' => $fullPath,
-            'thumbnail_path' => $thumbPath,
-        ];
-    }
-
-    protected function createPlaceholderAsset(string $label, string $hex, string $dir): string
-    {
-        $uuid = Str::uuid();
-        $tempPath = storage_path("app/temp-sc-{$uuid}.png");
-        $image = Image::create(800, 1000)->fill(ltrim($hex, '#'));
-        $image->save($tempPath);
-
-        $out = "{$dir}/{$uuid}.webp";
-        Image::read($tempPath)->toWebp(quality: 85)->save(storage_path("app/public/{$out}"));
-
-        if (file_exists($tempPath)) {
-            unlink($tempPath);
-        }
-
-        return $out;
     }
 }

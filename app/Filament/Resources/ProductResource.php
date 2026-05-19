@@ -88,7 +88,7 @@ class ProductResource extends Resource
                     ->label('Cover image (1080×1350, 4:5 — used as thumbnail everywhere)')
                     ->image()
                     ->directory('products/tmp')
-                    ->helperText('Required for best display. Shown on cards, listings, and as PDP main image.')
+                    ->helperText('Required for best display. Shown on cards, listings, and as PDP main image. Upload 1080×1350 (4:5).')
                     ->dehydrated(fn ($state) => filled($state))
                     ->saveRelationshipsUsing(null),
             ]),
@@ -123,8 +123,7 @@ class ProductResource extends Resource
             ->columns([
                 Tables\Columns\ImageColumn::make('cover_thumbnail_path')
                     ->label('Cover')
-                    ->circular()
-                    ->defaultImageUrl(url('/images/placeholder.webp')),
+                    ->circular(),
                 Tables\Columns\TextColumn::make('model_number')
                     ->searchable()
                     ->sortable()

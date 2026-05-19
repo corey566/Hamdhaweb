@@ -91,7 +91,7 @@ class HomepageManager extends Page
                         ->disk('public')
                         ->directory('homepage')
                         ->nullable()
-                        ->helperText('Upload multiple images for the homepage hero slider.'),
+                        ->helperText('Upload multiple images for the homepage hero slider (desktop right + mobile top).'),
                     Forms\Components\TextInput::make('hero_cta_text')
                         ->label('Button Text'),
                     Forms\Components\TextInput::make('hero_cta_url')
