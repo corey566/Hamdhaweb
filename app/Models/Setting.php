@@ -22,6 +22,7 @@ class Setting extends Model
     {
         static::updateOrCreate(['key' => $key], ['value' => $value]);
         Cache::forget("setting.{$key}");
+        Cache::forget('site_settings_global');
     }
 
     public static function getJson(string $key, $default = []): array

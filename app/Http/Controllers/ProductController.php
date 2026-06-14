@@ -25,11 +25,16 @@ class ProductController extends Controller
         ];
 
         $category = null;
-        $pageTitle = 'ALL PRODUCTS';
+        $pageTitle = 'All Products';
+        $filterTabs = Category::topLevel()->visible()->ordered()->get();
+        $topLevelCollections = Category::topLevel()->visible()->ordered()->with('children')->get();
+        $filterMode = 'multi';
+        $dynamicTitle = false;
 
         return view('pages.products.index', compact(
             'category', 'productCount', 'fabrics', 'priceBuckets',
-            'allCategories', 'breadcrumbs', 'pageTitle'
+            'allCategories', 'breadcrumbs', 'pageTitle', 'filterTabs', 'topLevelCollections',
+            'filterMode', 'dynamicTitle'
         ));
     }
 
@@ -48,12 +53,17 @@ class ProductController extends Controller
         ];
 
         $category = null;
-        $pageTitle = 'NEW ARRIVALS';
+        $pageTitle = 'New Arrivals';
         $isNewArrivals = true;
+        $filterTabs = Category::topLevel()->visible()->ordered()->get();
+        $topLevelCollections = Category::topLevel()->visible()->ordered()->with('children')->get();
+        $filterMode = 'multi';
+        $dynamicTitle = false;
 
         return view('pages.products.index', compact(
             'category', 'productCount', 'fabrics', 'priceBuckets',
-            'allCategories', 'breadcrumbs', 'pageTitle', 'isNewArrivals'
+            'allCategories', 'breadcrumbs', 'pageTitle', 'isNewArrivals', 'filterTabs', 'topLevelCollections',
+            'filterMode', 'dynamicTitle'
         ));
     }
 

@@ -14,14 +14,21 @@ class EditProduct extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [
-            Actions\DeleteAction::make(),
-        ];
+        return [Actions\DeleteAction::make()];
+    }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $data['cover_image'] = $this->record->cover_image_path;
+        $data['product_images'] = $this->record->images->pluck('image_path')->toArray();
+
+        return $data;
     }
 
     protected function afterSave(): void
     {
-        $product = $this->record;
+        $product = $this->record->fresh();
+        $imageService = app(ImageService::class);
 
         $categoryIds = $product->categories()->pluck('categories.id')->toArray();
         if (! empty($categoryIds)) {
@@ -31,7 +38,17 @@ class EditProduct extends EditRecord
             }
         }
 
-        $imageService = app(ImageService::class);
+        $cover = $this->form->getState()['cover_image'] ?? null;
+        if ($cover && $cover !== $product->cover_image_path) {
+            $imageService->deleteImage($product->cover_image_path);
+            $imageService->deleteImage($product->cover_thumbnail_path);
+            $result = $imageService->processProductImage($cover);
+            $product->update([
+                'cover_image_path' => $result['image_path'],
+                'cover_thumbnail_path' => $result['thumbnail_path'],
+            ]);
+        }
+
         $state = $this->form->getState()['product_images'] ?? [];
         $existingImageIds = [];
         $newSortOrder = 0;
@@ -40,8 +57,7 @@ class EditProduct extends EditRecord
             if (is_string($file) && ! empty($file)) {
                 $image = ProductImage::where('product_id', $product->id)
                     ->where(function ($q) use ($file) {
-                        $q->where('image_path', $file)
-                            ->orWhere('thumbnail_path', $file);
+                        $q->where('image_path', $file)->orWhere('thumbnail_path', $file);
                     })
                     ->first();
 
@@ -61,13 +77,9 @@ class EditProduct extends EditRecord
             }
         }
 
-        if (! empty($existingImageIds)) {
-            $toDelete = ProductImage::where('product_id', $product->id)
-                ->whereNotIn('id', $existingImageIds)
-                ->get();
-        } else {
-            $toDelete = $product->images;
-        }
+        $toDelete = ! empty($existingImageIds)
+            ? ProductImage::where('product_id', $product->id)->whereNotIn('id', $existingImageIds)->get()
+            : $product->images;
 
         foreach ($toDelete as $image) {
             $imageService->deleteImage($image->image_path);

@@ -51,7 +51,6 @@ class ProductResource extends Resource
                 Forms\Components\Select::make('fabric_id')
                     ->label('Fabric')
                     ->relationship('fabric', 'name')
-                    ->required()
                     ->searchable()
                     ->preload()
                     ->createOptionForm([
@@ -84,15 +83,25 @@ class ProductResource extends Resource
                     ->helperText('Select size chart(s) to show on this product. Created in Size Charts menu.'),
             ]),
 
-            Forms\Components\Section::make('Product Images')->schema([
+            Forms\Components\Section::make('Cover Image')->schema([
+                Forms\Components\FileUpload::make('cover_image')
+                    ->label('Cover image (1080×1350, 4:5 — used as thumbnail everywhere)')
+                    ->image()
+                    ->directory('products/tmp')
+                    ->helperText('Required for best display. Shown on cards, listings, and as PDP main image. Upload 1080×1350 (4:5).')
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->saveRelationshipsUsing(null),
+            ]),
+
+            Forms\Components\Section::make('Gallery Images')->schema([
                 Forms\Components\FileUpload::make('product_images')
-                    ->label('Images (max 5, 4:5 ratio, auto-converted to WebP)')
+                    ->label('Gallery (max 5, 4:5 ratio, WebP)')
                     ->image()
                     ->multiple()
                     ->maxFiles(5)
                     ->reorderable()
                     ->directory('products/tmp')
-                    ->helperText('First image becomes the thumbnail. Drag to reorder.')
+                    ->helperText('Additional images for product page gallery and hover effect. Cover is separate.')
                     ->dehydrated(fn ($state) => filled($state))
                     ->saveRelationshipsUsing(null),
             ]),
@@ -112,10 +121,9 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('images.0.thumbnail_path')
-                    ->label('Image')
-                    ->circular()
-                    ->defaultImageUrl(url('/images/placeholder.webp')),
+                Tables\Columns\ImageColumn::make('cover_thumbnail_path')
+                    ->label('Cover')
+                    ->circular(),
                 Tables\Columns\TextColumn::make('model_number')
                     ->searchable()
                     ->sortable()

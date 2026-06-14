@@ -20,6 +20,7 @@ module.exports = {
         'text-dark': '#1A1A1A',
         'text-medium': '#4A4A4A',
         'text-light': '#888888',
+        border: '#E8E8E8',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

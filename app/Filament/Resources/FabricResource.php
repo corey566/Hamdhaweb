@@ -53,7 +53,12 @@ class FabricResource extends Resource
             ->reorderable('sort_order')
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->modalHeading('Delete fabric?')
+                    ->modalDescription(fn (Fabric $record) => $record->products()->count()
+                        ? 'Linked products ('.$record->products()->count().') will show "Fabric unavailable" on the website. Renaming this fabric updates all linked products automatically.'
+                        : 'This fabric is not used by any products.'),
             ]);
     }
 

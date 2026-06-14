@@ -10,7 +10,11 @@ class CategoryController extends Controller
 {
     public function show(string $slug)
     {
-        $category = Category::where('slug', $slug)->visible()->firstOrFail();
+        $category = Category::where('slug', $slug)->visible()->with(['parent', 'children'])->firstOrFail();
+
+        $filterTabs = $category->parent_id
+            ? Category::where('parent_id', $category->parent_id)->visible()->ordered()->get()
+            : $category->children()->visible()->ordered()->get();
 
         $productCount = $category->products()->visible()->count();
 
@@ -30,7 +34,9 @@ class CategoryController extends Controller
             ['label' => 'HOME', 'url' => route('home')],
             ['label' => strtoupper($category->name), 'url' => null],
         ];
-        $pageTitle = strtoupper($category->name);
+        $pageTitle = str_ends_with(strtolower($category->name), 'abaya')
+            ? $category->name
+            : $category->name.' Abaya';
         if ($category->parent) {
             array_splice($breadcrumbs, 1, 0, [[
                 'label' => strtoupper($category->parent->name),
@@ -38,9 +44,21 @@ class CategoryController extends Controller
             ]]);
         }
 
+        $topLevelCollections = Category::topLevel()->visible()->ordered()->with('children')->get();
+
+        $filterMode = 'single';
+        $dynamicTitle = true;
+
+        if ($productCount === 0) {
+            return view('pages.products.coming-soon', compact(
+                'category', 'breadcrumbs', 'pageTitle'
+            ));
+        }
+
         return view('pages.products.index', compact(
             'category', 'productCount', 'fabrics', 'priceBuckets',
-            'allCategories', 'breadcrumbs', 'pageTitle'
+            'allCategories', 'breadcrumbs', 'pageTitle', 'filterTabs', 'topLevelCollections',
+            'filterMode', 'dynamicTitle'
         ));
     }
 }

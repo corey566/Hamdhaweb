@@ -28,11 +28,15 @@
   }
 
   .tag-pill {
-    @apply inline-block bg-primary text-white text-xs font-medium tracking-[0.4em] px-4 py-2 rounded-sm;
+    @apply inline-block bg-primary text-white text-[10px] font-medium tracking-[0.25em] px-2.5 py-1 rounded-sm;
   }
 
   .tag-pill-outline {
-    @apply inline-block border border-primary text-primary text-[10px] font-medium tracking-wide px-2.5 py-1 rounded-sm;
+    @apply inline-block border border-primary text-primary text-[9px] font-medium tracking-wide px-2 py-0.5 rounded-sm;
+  }
+
+  .tag-pill-sm {
+    @apply inline-block bg-primary text-white text-[8px] font-medium tracking-[0.18em] px-1.5 py-0.5 rounded-sm leading-tight;
   }
 
   .btn-primary {
@@ -47,28 +51,111 @@
     @apply text-xs lg:text-[13px] font-medium tracking-widest uppercase text-text-dark hover:text-primary-light whitespace-nowrap transition-colors;
   }
 
-  .marquee-container {
-    @apply overflow-hidden;
+  .category-strip-fullbleed {
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
   }
 
-  .marquee-track {
-    @apply flex w-max gap-6;
-    animation: scroll 20s linear infinite;
+  .category-strip-marquee {
+    @apply flex w-max items-stretch;
+    animation: categoryStripScroll 22s linear infinite;
   }
 
-  .marquee-track:hover {
+  .category-strip-marquee:hover {
     animation-play-state: paused;
   }
 
-  @keyframes scroll {
+  @keyframes categoryStripScroll {
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
 
+  .category-strip-link {
+    @apply inline-flex shrink-0 items-center justify-center px-6 py-4 text-[11px] font-medium tracking-[0.2em] uppercase text-white whitespace-nowrap transition-colors;
+    @apply hover:bg-primary-hover lg:px-8 lg:py-5 lg:text-xs xl:text-[13px];
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .marquee-track {
+    .category-strip-marquee {
       animation: none;
-      overflow-x: auto;
+      @apply w-full overflow-x-auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
     }
+
+    .category-strip-marquee::-webkit-scrollbar {
+      display: none;
+    }
+    .hero-title-animate {
+      animation: none;
+    }
+  }
+
+  .hero-title-animate {
+    animation: heroFade 8s ease-in-out infinite;
+  }
+
+  @keyframes heroFade {
+    0%, 100% { opacity: 1; transform: translateY(0); }
+    50% { opacity: 0.92; transform: translateY(-1px); }
+  }
+
+  .product-card-image-stack .product-card-cover,
+  .product-card-image-stack .product-card-hover {
+    @apply absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out;
+  }
+
+  .product-card-image-stack .product-card-hover {
+    @apply opacity-0;
+  }
+
+  .product-card:hover .product-card-image-stack .product-card-hover {
+    @apply opacity-100;
+  }
+
+  .search-suggest-dropdown {
+    @apply pointer-events-auto;
+  }
+
+  .hero-fullbleed {
+    @apply w-full max-w-none overflow-hidden;
+  }
+
+  .hero-fullbleed img {
+    @apply w-full h-full object-cover object-center;
+  }
+
+  .hero-mobile-bleed {
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+  }
+
+  @media (min-width: 1024px) {
+    .hero-desktop-bleed {
+      width: 100vw;
+      max-width: 100vw;
+      margin-left: calc(50% - 50vw);
+      margin-right: calc(50% - 50vw);
+    }
+  }
+
+  .hero-mobile-bleed img {
+    @apply w-full h-full object-cover object-center;
+  }
+
+  .filter-tab {
+    @apply text-xs font-medium tracking-widest uppercase text-text-medium whitespace-nowrap pb-3 border-b-2 border-transparent hover:text-primary transition-colors;
+  }
+
+  .filter-tab-active {
+    @apply text-primary border-primary;
+  }
+
+  .plp-tagline {
+    @apply text-sm text-text-medium leading-relaxed max-w-xl mx-auto mt-3;
   }
 }

@@ -22,7 +22,7 @@ class HomeController extends Controller
             return Product::visible()
                 ->featured()
                 ->withPrimaryCategory()
-                ->with(['images' => fn ($q) => $q->orderBy('sort_order')->limit(1), 'fabric'])
+                ->with(['images' => fn ($q) => $q->orderBy('sort_order')->limit(2), 'fabric'])
                 ->latest()
                 ->limit(8)
                 ->get();
@@ -34,7 +34,7 @@ class HomeController extends Controller
 
                 return Product::visible()
                     ->withPrimaryCategory()
-                    ->with(['images' => fn ($q) => $q->orderBy('sort_order')->limit(1), 'fabric'])
+                    ->with(['images' => fn ($q) => $q->orderBy('sort_order')->limit(2), 'fabric'])
                     ->latest()
                     ->limit($count)
                     ->get();

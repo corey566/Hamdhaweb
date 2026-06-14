@@ -33,11 +33,17 @@ class HomepageManager extends Page
             ['number' => 3, 'title' => '', 'description' => ''],
         ];
 
+        $heroSlides = $hero?->extra_data['slides'] ?? [];
+        if (empty($heroSlides) && $hero?->image_path) {
+            $heroSlides = [$hero->image_path];
+        }
+
         $this->form->fill([
             'hero_title' => $hero?->title ?? '',
             'hero_subtitle' => $hero?->subtitle ?? '',
             'hero_content' => $hero?->content ?? '',
             'hero_image' => $hero?->image_path ?? null,
+            'hero_slides' => $heroSlides,
             'hero_cta_text' => $hero?->cta_text ?? '',
             'hero_cta_url' => $hero?->cta_url ?? '',
             'hero_is_visible' => $hero?->is_visible ?? true,
@@ -71,12 +77,21 @@ class HomepageManager extends Page
                         ->label('Content')
                         ->rows(3),
                     Forms\Components\FileUpload::make('hero_image')
-                        ->label('Background Image')
+                        ->label('Primary Image (fallback)')
                         ->image()
                         ->disk('public')
                         ->directory('homepage')
                         ->nullable()
                         ->saveUploadedFileUsing(fn ($file) => app(ImageService::class)->processHomepageImage($file)),
+                    Forms\Components\FileUpload::make('hero_slides')
+                        ->label('Hero Slider Images')
+                        ->image()
+                        ->multiple()
+                        ->reorderable()
+                        ->disk('public')
+                        ->directory('homepage')
+                        ->nullable()
+                        ->helperText('Upload multiple images for the homepage hero slider (desktop right + mobile top).'),
                     Forms\Components\TextInput::make('hero_cta_text')
                         ->label('Button Text'),
                     Forms\Components\TextInput::make('hero_cta_url')
@@ -136,11 +151,15 @@ class HomepageManager extends Page
         $hero = HomepageSection::getSection('hero');
         $this->handleImageDeletion($imageService, $data['hero_image'] ?? null, $hero?->image_path);
 
+        $slides = array_values(array_filter($data['hero_slides'] ?? []));
+        $primaryImage = $slides[0] ?? ($data['hero_image'] ?? null);
+
         HomepageSection::updateSection('hero', [
             'title' => $data['hero_title'] ?? '',
             'subtitle' => $data['hero_subtitle'] ?? '',
             'content' => $data['hero_content'] ?? '',
-            'image_path' => $data['hero_image'] ?? null,
+            'image_path' => $primaryImage,
+            'extra_data' => ['slides' => $slides],
             'cta_text' => $data['hero_cta_text'] ?? '',
             'cta_url' => $data['hero_cta_url'] ?? '',
             'is_visible' => $data['hero_is_visible'] ?? true,

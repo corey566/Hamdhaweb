@@ -31,7 +31,7 @@
 <!-- Results -->
 <div class="max-w-7xl mx-auto px-4 lg:px-16 pb-16">
   @if($products->count() > 0)
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
+    <div class="grid grid-cols-2 items-stretch gap-3 lg:grid-cols-4 lg:gap-6">
       @foreach($products as $product)
         <x-product-card :product="$product" />
       @endforeach

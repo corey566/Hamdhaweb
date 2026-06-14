@@ -15,6 +15,7 @@ class CreateProduct extends CreateRecord
     protected function afterSave(): void
     {
         $product = $this->record;
+        $imageService = app(ImageService::class);
 
         $categoryIds = $product->categories()->pluck('categories.id')->toArray();
         if (! empty($categoryIds)) {
@@ -24,18 +25,21 @@ class CreateProduct extends CreateRecord
             }
         }
 
+        $cover = $this->form->getState()['cover_image'] ?? null;
+        if ($cover) {
+            $result = $imageService->processProductImage($cover);
+            $product->update([
+                'cover_image_path' => $result['image_path'],
+                'cover_thumbnail_path' => $result['thumbnail_path'],
+            ]);
+        }
+
         $uploadedFiles = $this->form->getState()['product_images'] ?? [];
         if (! empty($uploadedFiles)) {
-            $imageService = app(ImageService::class);
             $sortOrder = 0;
-
             foreach ($uploadedFiles as $file) {
-                if ($file instanceof TemporaryUploadedFile) {
+                if ($file instanceof TemporaryUploadedFile || (is_string($file) && ! empty($file))) {
                     $result = $imageService->processProductImage($file);
-                } elseif (is_string($file) && ! empty($file)) {
-                    $result = $imageService->processProductImage($file);
-                }
-                if (! empty($result)) {
                     ProductImage::create([
                         'product_id' => $product->id,
                         'image_path' => $result['image_path'],

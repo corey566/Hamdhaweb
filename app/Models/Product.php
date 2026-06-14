@@ -13,7 +13,8 @@ class Product extends Model
 {
     protected $fillable = [
         'model_number', 'name', 'slug', 'price', 'discount_price',
-        'description', 'fabric_id', 'colors', 'is_visible', 'is_featured',
+        'description', 'cover_image_path', 'cover_thumbnail_path',
+        'fabric_id', 'colors', 'is_visible', 'is_featured',
     ];
 
     protected $casts = [
@@ -49,6 +50,70 @@ class Product extends Model
         return $this->images()->first();
     }
 
+    public function coverThumbnailUrl(): ?string
+    {
+        if ($this->cover_thumbnail_path) {
+            return asset('storage/'.$this->cover_thumbnail_path);
+        }
+
+        $first = $this->images->first();
+
+        return $first ? asset('storage/'.($first->thumbnail_path ?? $first->image_path)) : null;
+    }
+
+    public function coverImageUrl(): ?string
+    {
+        if ($this->cover_image_path) {
+            return asset('storage/'.$this->cover_image_path);
+        }
+
+        $first = $this->images->first();
+
+        return $first ? asset('storage/'.$first->image_path) : null;
+    }
+
+    public function hoverImageUrl(): ?string
+    {
+        $second = $this->images->skip(1)->first();
+
+        return $second ? asset('storage/'.($second->thumbnail_path ?? $second->image_path)) : null;
+    }
+
+    /**
+     * @return array<int, array{full: string, thumb: string}>
+     */
+    public function galleryImages(): array
+    {
+        $items = [];
+        $seen = [];
+
+        if ($this->cover_image_path) {
+            $full = asset('storage/'.$this->cover_image_path);
+            $thumb = asset('storage/'.($this->cover_thumbnail_path ?? $this->cover_image_path));
+            $items[] = ['full' => $full, 'thumb' => $thumb];
+            $seen[$full] = true;
+        }
+
+        foreach ($this->images as $image) {
+            $full = asset('storage/'.$image->image_path);
+            if (isset($seen[$full])) {
+                continue;
+            }
+            $items[] = [
+                'full' => $full,
+                'thumb' => asset('storage/'.($image->thumbnail_path ?? $image->image_path)),
+            ];
+            $seen[$full] = true;
+        }
+
+        return $items;
+    }
+
+    public function fabricLabel(): string
+    {
+        return $this->fabric?->name ?? 'Fabric unavailable';
+    }
+
     public function sizeCharts(): BelongsToMany
     {
         return $this->belongsToMany(SizeChart::class, 'product_size_chart')
@@ -80,7 +145,13 @@ class Product extends Model
 
     public function scopeSearch($query, string $term)
     {
-        return $query->where('name', 'LIKE', '%'.$term.'%');
+        $like = '%'.$term.'%';
+
+        return $query->where(function ($q) use ($like) {
+            $q->where('name', 'LIKE', $like)
+                ->orWhere('model_number', 'LIKE', $like)
+                ->orWhereHas('fabric', fn ($fabric) => $fabric->where('name', 'LIKE', $like));
+        });
     }
 
     public function getDisplayPriceAttribute(): string
@@ -122,6 +193,8 @@ class Product extends Model
 
         static::deleting(function (Product $product) {
             $imageService = app(ImageService::class);
+            $imageService->deleteImage($product->cover_image_path);
+            $imageService->deleteImage($product->cover_thumbnail_path);
             foreach ($product->images as $image) {
                 $imageService->deleteImage($image->image_path);
                 $imageService->deleteImage($image->thumbnail_path);
